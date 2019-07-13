@@ -17,6 +17,7 @@
       this.numRow = 8;
       this.turn = -1; // 先手は黒
       this.success = false; // 有効な手を打ったか
+      this.lastMove = {};
 
       this.init();
       this.render();
@@ -59,6 +60,9 @@
         this.ctx.closePath();
         this.ctx.stroke();
       }
+
+      // 一つ前の手を表示
+      this.showLastMove(this.lastMove.col, this.lastMove.row);
 
       // ディスクの描画
       for (let row = 0; row < this.numRow; row++) {
@@ -161,6 +165,11 @@
       return skip;
     }
 
+    showLastMove(col, row) {
+      this.ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+      this.ctx.fillRect(50 * col, 50 * row, 50, 50);
+    }
+
     addListener() {
       const canvas = document.querySelector('canvas');
       canvas.addEventListener('click', e => {
@@ -172,6 +181,7 @@
         
         if (this.placeDisk(col, row)) {
           this.turn *= -1;
+          [this.lastMove.col, this.lastMove.row] = [col, row];
           this.render();
         }
         this.success = false;
