@@ -1,0 +1,13 @@
+canvas {
+	display: block;
+	background: #086e36;
+	margin: auto;
+}
+
+p {
+	text-align: center;
+}
+
+.bold {
+	font-weight: bold;
+}
