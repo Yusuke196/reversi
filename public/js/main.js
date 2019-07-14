@@ -64,9 +64,7 @@
       }
 
       // 一つ前の手を表示
-      if (document.getElementById('show_last').checked) {
-        this.showLastMove(this.lastMove.col, this.lastMove.row);        
-      }
+      this.showLastMove(this.lastMove.col, this.lastMove.row);        
 
       // ディスクの描画
       for (let row = 0; row < this.numRow; row++) {
@@ -204,9 +202,6 @@
 
       document.getElementById('show_score').addEventListener('change', () => {
         this.showScore();
-      });
-      document.getElementById('show_last').addEventListener('change', () => {
-        this.render();
       });
       document.getElementById('search_next').addEventListener('change', () => {
         this.render();
