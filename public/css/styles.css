@@ -1,20 +1,28 @@
+body {
+	font-family: sans-serif;
+}
+
+.container {
+	margin: 0px auto;
+}
+
+p {
+	margin: 12px auto;
+}
+
 canvas {
 	display: block;
 	background: #086e36;
-	margin: 0 auto 16px;
+	margin: 0 auto 12px;
 }
 
 .score {
 	text-align: center;
 }
 
-/* .bold {
-	font-weight: bold;
-} */
-
 fieldset {
 	box-sizing: border-box;
-	width: 400px;
+	width: 360px;
 	margin: 0 auto;
 	padding: 0;
 }
@@ -22,7 +30,6 @@ fieldset {
 fieldset p {
 	display: block;
 	width: 200px;
-	margin: 16px auto;
 }
 
 fieldset br + input {
