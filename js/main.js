@@ -18,26 +18,26 @@
       this.turn = -1; // 先手は黒
       this.success = false; // 有効な手を打ったか
       this.lastMove = {};
-
+      
       this.init();
       this.render();
       this.addListener();
     }
 
     init() {
-      const canvas = document.querySelector('canvas');
-      if (typeof canvas.getContext === 'undefined') {
+      this.canvas = document.querySelector('canvas');
+      if (typeof this.canvas.getContext === 'undefined') {
         return;
       }
-      this.ctx = canvas.getContext('2d');
+      this.ctx = this.canvas.getContext('2d');
 
       // Retina対応
       const dpr = window.devicePixelRatio || 1;
-      canvas.width *= dpr;
-      canvas.height *= dpr;
+      this.canvas.width *= dpr;
+      this.canvas.height *= dpr;
       this.ctx.scale(dpr, dpr);
-      canvas.style.width = '400px';
-      canvas.style.height = '400px';
+      this.canvas.style.width = '400px';
+      this.canvas.style.height = '400px';
     }
 
     render() {
@@ -62,7 +62,9 @@
       }
 
       // 一つ前の手を表示
-      this.showLastMove(this.lastMove.col, this.lastMove.row);
+      if (document.getElementById('show_last').checked) {
+        this.showLastMove(this.lastMove.col, this.lastMove.row);        
+      }
 
       // ディスクの描画
       for (let row = 0; row < this.numRow; row++) {
@@ -77,25 +79,8 @@
         }
       }
 
-      // 得点の表示
-      const light = document.getElementById('light');
-      const dark = document.getElementById('dark');
-
-      let lightScore = 0;
-      let darkScore = 0;
-
-      for (let row = 0; row < this.numRow; row++) {
-        for (let col = 0; col < this.numCol; col++) {
-          if (this.disks[row][col] === 1) {
-            lightScore++;
-          } else if (this.disks[row][col] === -1) {
-            darkScore++;
-          }
-        }
-      }
-
-      light.textContent = lightScore;
-      dark.textContent = darkScore;
+      // スコアの表示
+      this.showScore();
 
       // 打てる場所の探索（自分だけ打てる場所がなければ相手の手番になること、双方に打てる場所がなければゲームの終了を通知）
       if (this.search()) {
@@ -110,6 +95,9 @@
           } else {
             msg = 'ゲームが終わりました。引き分けです。';
           }
+
+          document.getElementById('show_score').checked = true;
+          this.showScore();
         } else {
           if (this.turn === 1) {
             msg = '黒は打てる場所がないので、もう一度、白の手番になります。';
@@ -122,15 +110,6 @@
           alert(msg);
         }, 1);
       }
-
-      // 手番の表示
-      // if (this.turn === 1) {
-      //   light.classList.add('bold');
-      //   dark.classList.remove('bold');
-      // } else if (this.turn === -1) {
-      //   dark.classList.add('bold');
-      //   light.classList.remove('bold');
-      // }
     }
 
     drawDisk(col, row, color) {
@@ -143,8 +122,35 @@
       this.ctx.fill();
     }
 
+    showScore() {
+      const light = document.getElementById('light');
+      const dark = document.getElementById('dark');
+
+      if (document.getElementById('show_score').checked) {
+        let lightScore = 0;
+        let darkScore = 0;
+
+        for (let row = 0; row < this.numRow; row++) {
+          for (let col = 0; col < this.numCol; col++) {
+            if (this.disks[row][col] === 1) {
+              lightScore++;
+            } else if (this.disks[row][col] === -1) {
+              darkScore++;
+            }
+          }
+        }
+
+        light.textContent = lightScore;
+        dark.textContent = darkScore;
+      } else {
+        light.textContent = '?';
+        dark.textContent = '?';
+      }
+    }
+
     search() {
       let skip = true;
+      const searchNext = document.getElementById('search_next').checked;
       
       for (let row = 0; row < this.numRow; row++) {
         for (let col = 0; col < this.numCol; col++) {
@@ -152,11 +158,15 @@
 
           if (this.placeDisk(col, row, true)) {
             if (this.turn === 1) {
-              this.drawDisk(col, row, 'rgba(255, 255, 255, 0.2)');
               skip = false;
+              if (searchNext) {
+                this.drawDisk(col, row, 'rgba(255, 255, 255, 0.2)');
+              }
             } else if (this.turn === -1) {
-              this.drawDisk(col, row, 'rgba(0, 0, 0, 0.2)');
               skip = false;
+              if (searchNext) {
+                this.drawDisk(col, row, 'rgba(0, 0, 0, 0.2)');
+              }
             }
           }
         }
@@ -166,13 +176,12 @@
     }
 
     showLastMove(col, row) {
-      this.ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+      this.ctx.fillStyle = 'rgba(127, 255, 0, 0.2)';
       this.ctx.fillRect(50 * col, 50 * row, 50, 50);
     }
 
     addListener() {
-      const canvas = document.querySelector('canvas');
-      canvas.addEventListener('click', e => {
+      this.canvas.addEventListener('click', e => {
         const rect = e.target.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
@@ -185,6 +194,16 @@
           this.render();
         }
         this.success = false;
+      });
+
+      document.getElementById('show_score').addEventListener('change', () => {
+        this.showScore();
+      });
+      document.getElementById('show_last').addEventListener('change', () => {
+        this.render();
+      });
+      document.getElementById('search_next').addEventListener('change', () => {
+        this.render();
       });
     }
 

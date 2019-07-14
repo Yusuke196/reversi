@@ -6,11 +6,21 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+  <p class="score">黒：<span id="dark"></span>　白：<span id="light"></span></p>
+
   <canvas width="400" height="400">
     Canvas not Supported.
   </canvas>
 
-  <p>黒：<span id="dark"></span>　白：<span id="light"></span></p>
+  <fieldset>
+    <p>
+      <input id="show_score" type="checkbox" checked> スコアを表示する
+      <br>
+      <input id="show_last" type="checkbox" checked> 直前の手を表示する
+      <br>
+      <input id="search_next" type="checkbox" checked> 置ける場所を探索する
+    </p>
+  </fieldset>
   
   <script src="js/main.js"></script>
 </body>
