@@ -3,7 +3,7 @@
 {
   class Reversi {
     constructor() {
-      this.disks = [
+      this.originalDisks = [
         [0, 0, 0,  0,  0, 0, 0, 0],
         [0, 0, 0,  0,  0, 0, 0, 0],
         [0, 0, 0,  0,  0, 0, 0, 0],
@@ -13,20 +13,22 @@
         [0, 0, 0,  0,  0, 0, 0, 0],
         [0, 0, 0,  0,  0, 0, 0, 0],
       ];
+      this.disks = [];
+      this.currentDisks = [];
+      this.recentDisks = [];
+
       this.numCol = 8;
       this.numRow = this.numCol;
       this.squareSize = 45;
       this.boardSize = this.squareSize * this.numCol;
-      this.turn = -1; // 先手は黒
-      this.success = false; // 有効な手を打ったか
-      this.lastMove = {};
+      this.reset = document.getElementById('reset');      
       
-      this.init();
-      this.render();
+      this.initCanvas();
+      this.initGame();
       this.addListener();
     }
 
-    init() {
+    initCanvas() {
       this.canvas = document.querySelector('canvas');
       if (typeof this.canvas.getContext === 'undefined') {
         return;
@@ -40,6 +42,19 @@
       this.ctx.scale(dpr, dpr);
       this.canvas.style.width = '360px';
       this.canvas.style.height = '360px';
+    }
+
+    initGame() {
+      // orginalDisksの値をdisksとrecentDisksにコピー
+      this.originalDisks.forEach((array, index) => {
+        this.disks[index] = Array.from(array);
+        this.currentDisks[index] = Array.from(array);
+      });
+      this.lastMove = {};
+      this.beforeLastMove = {};
+
+      this.turn = -1; // 先手は黒
+      this.render();
     }
 
     render() {
@@ -63,7 +78,7 @@
         this.ctx.stroke();
       }
 
-      // 一つ前の手を表示
+      // 一つ前の手を表示（ディスクより下のレイヤーで着色したいので、ここに書く）
       this.showLastMove(this.lastMove.col, this.lastMove.row);        
 
       // ディスクの描画
@@ -112,8 +127,21 @@
           alert(msg);
         }, 1);
       }
+
+      // リセットボタンの操作
+      if (this.darkScore + this.lightScore === 4) {
+        this.reset.disabled = true;
+      } else {
+        this.reset.disabled = false;
+      }
     }
 
+    showLastMove(col, row) {
+      this.ctx.fillStyle = 'rgba(127, 255, 0, 0.2)';
+      this.ctx.fillRect(this.squareSize * col, this.squareSize * row,
+        this.squareSize, this.squareSize);
+    }
+    
     drawDisk(col, row, color) {
       this.ctx.beginPath();
       this.ctx.arc(this.squareSize * (col + 0.5), this.squareSize * (row + 0.5),
@@ -126,28 +154,28 @@
     }
 
     showScore() {
-      const light = document.getElementById('light');
       const dark = document.getElementById('dark');
+      const light = document.getElementById('light');
 
       if (document.getElementById('show_score').checked) {
-        this.lightScore = 0;
         this.darkScore = 0;
+        this.lightScore = 0;
 
         for (let row = 0; row < this.numRow; row++) {
           for (let col = 0; col < this.numCol; col++) {
-            if (this.disks[row][col] === 1) {
-              this.lightScore++;
-            } else if (this.disks[row][col] === -1) {
+            if (this.disks[row][col] === -1) {
               this.darkScore++;
+            } else if (this.disks[row][col] === 1) {
+              this.lightScore++;
             }
           }
         }
 
-        light.textContent = this.lightScore;
         dark.textContent = this.darkScore;
+        light.textContent = this.lightScore;
       } else {
-        light.textContent = '?';
         dark.textContent = '?';
+        light.textContent = '?';
       }
     }
 
@@ -157,7 +185,7 @@
       
       for (let row = 0; row < this.numRow; row++) {
         for (let col = 0; col < this.numCol; col++) {
-          this.success = false;
+          this.success = false; // 有効な手かどうか
 
           if (this.placeDisk(col, row, true)) {
             if (this.turn === 1) {
@@ -178,12 +206,6 @@
       return skip;
     }
 
-    showLastMove(col, row) {
-      this.ctx.fillStyle = 'rgba(127, 255, 0, 0.2)';
-      this.ctx.fillRect(this.squareSize * col, this.squareSize * row,
-        this.squareSize, this.squareSize);
-    }
-
     addListener() {
       this.canvas.addEventListener('click', e => {
         const rect = e.target.getBoundingClientRect();
@@ -193,13 +215,51 @@
         const row = Math.floor(y / this.squareSize);
         
         if (this.placeDisk(col, row)) {
-          this.turn *= -1;
+          // currentDisksの値をrecentDisksに、disksの値をrecentDisksにコピー
+          this.currentDisks.forEach((array, index) => {
+            this.recentDisks[index] = Array.from(array);
+          });
+          this.disks.forEach((array, index) => {
+            this.currentDisks[index] = Array.from(array);
+          });
+
+          if (Object.keys(this.lastMove).length !== 0) {
+            [this.beforeLastMove.col, this.beforeLastMove.row]
+              = [this.lastMove.col, this.lastMove.row]
+          }
           [this.lastMove.col, this.lastMove.row] = [col, row];
+
+          this.turn *= -1;
           this.render();
+
+          undo.disabled = false;
         }
         this.success = false;
       });
 
+      const undo = document.getElementById('undo');
+      undo.addEventListener('click', () => {
+        // recentDisksの値をdisksとcurrentDisksにコピー
+        this.recentDisks.forEach((array, index) => {
+          this.disks[index] = Array.from(array);
+          this.currentDisks[index] = Array.from(array);          
+        });
+
+        [this.lastMove.col, this.lastMove.row]
+          = [this.beforeLastMove.col, this.beforeLastMove.row]
+
+        this.turn *= -1;
+        this.render();
+        undo.disabled = true;
+      });
+
+      this.reset.addEventListener('click', () => {
+        confirm('ここまでのゲームを破棄して、リセットしますか？');
+        this.initGame();
+
+        undo.disabled = true;
+      });
+      
       document.getElementById('show_score').addEventListener('change', () => {
         this.showScore();
       });
@@ -240,8 +300,6 @@
           continue;
         }
 
-        // console.log("A", this.turn, i, targetRow, targetCol, this.disks)
-
         // 相手の色が出る限りターゲットを同じ方向に進め、その途中で盤の外に出た場合は終了
         while (this.disks[targetRow][targetCol] === -this.turn) {
           targetRow += dirs[i].y;
@@ -266,8 +324,6 @@
         if (this.disks[targetRow][targetCol] === 0) {
           continue;
         }
-
-        // console.log("B", this.turn, i, targetRow, targetCol, this.disks)
 
         // ターゲットが自分の石だったら、間にあった石をひっくり返しながら元の位置まで戻る
         if (this.disks[targetRow][targetCol] === this.turn) {
@@ -294,3 +350,5 @@
 
   new Reversi();
 }
+
+// Coded by Yusuke196

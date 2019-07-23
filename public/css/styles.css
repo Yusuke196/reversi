@@ -3,21 +3,24 @@ body {
 }
 
 .container {
-	margin: 0px auto;
+	margin: 0 auto;
+	text-align: center;
 }
 
 p {
-	margin: 12px auto;
+	margin: 10px auto;
 }
 
 canvas {
 	display: block;
 	background: #086e36;
-	margin: 0 auto 12px;
+	margin: 0 auto 10px;
 }
 
-.score {
-	text-align: center;
+.button-container {
+	/* 内側の要素に合わせて広がってほしいのでinline-blockを設定 */
+	display: inline-block;
+	margin-bottom: 10px;
 }
 
 fieldset {
@@ -25,13 +28,13 @@ fieldset {
 	width: 360px;
 	margin: 0 auto;
 	padding: 0;
+	text-align: left;
 }
 
 fieldset p {
-	display: block;
 	width: 200px;
 }
 
 fieldset br + input {
-	margin-top: 12px;
+	margin-top: 10px;
 }
