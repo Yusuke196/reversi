@@ -20,8 +20,9 @@ class Reversi {
     this.numRow = this.numCol;
     this.squareSize = 45;
     this.boardSize = this.squareSize * this.numCol;
-    this.reset = document.getElementById('reset');      
-    
+    this.undo = document.getElementById('undo');
+    this.reset = document.getElementById('reset');
+
     this.initCanvas();
     this.initGame();
     this.addListener();
@@ -78,13 +79,13 @@ class Reversi {
     }
 
     // 一つ前の手を表示（ディスクより下のレイヤーで着色したいので、ここに書く）
-    this.showLastMove(this.lastMove.col, this.lastMove.row);        
+    this.showLastMove(this.lastMove.col, this.lastMove.row);
 
     // ディスクの描画
     for (let row = 0; row < this.numRow; row++) {
       for (let col = 0; col < this.numCol; col++) {
         const num = this.disks[row][col];
-  
+
         if (num === 1) {
           this.drawDisk(col, row, '#fff');
         } else if (num === -1) {
@@ -99,7 +100,7 @@ class Reversi {
     // 打てる場所の探索
     if (this.search()) {
       let msg;
-      
+
       this.turn *= -1;
       if (this.search()) {
         // 双方に打てる場所がなければ、ゲームの終了を通知
@@ -140,7 +141,7 @@ class Reversi {
     this.ctx.fillRect(this.squareSize * col, this.squareSize * row,
       this.squareSize, this.squareSize);
   }
-  
+
   drawDisk(col, row, color) {
     this.ctx.beginPath();
     this.ctx.arc(this.squareSize * (col + 0.5), this.squareSize * (row + 0.5),
@@ -181,7 +182,7 @@ class Reversi {
   search() {
     let skip = true;
     const searchNext = document.getElementById('search_next').checked;
-    
+
     for (let row = 0; row < this.numRow; row++) {
       for (let col = 0; col < this.numCol; col++) {
         this.success = false; // 有効な手かどうか
@@ -212,7 +213,7 @@ class Reversi {
       const y = e.clientY - rect.top;
       const col = Math.floor(x / this.squareSize);
       const row = Math.floor(y / this.squareSize);
-      
+
       if (this.placeDisk(col, row)) {
         // currentDisksの値をrecentDisksに、disksの値をrecentDisksにコピー
         this.currentDisks.forEach((array, index) => {
@@ -231,17 +232,16 @@ class Reversi {
         this.turn *= -1;
         this.render();
 
-        undo.disabled = false;
+        this.undo.disabled = false;
       }
       this.success = false;
     });
 
-    const undo = document.getElementById('undo');
-    undo.addEventListener('click', () => {
+    this.undo.addEventListener('click', () => {
       // recentDisksの値をdisksとcurrentDisksにコピー
       this.recentDisks.forEach((array, index) => {
         this.disks[index] = Array.from(array);
-        this.currentDisks[index] = Array.from(array);          
+        this.currentDisks[index] = Array.from(array);
       });
 
       [this.lastMove.col, this.lastMove.row]
@@ -249,17 +249,17 @@ class Reversi {
 
       this.turn *= -1;
       this.render();
-      undo.disabled = true;
+      this.undo.disabled = true;
     });
 
     this.reset.addEventListener('click', () => {
       if (confirm('ここまでのゲームを破棄して、リセットしますか？')) {
         this.initGame();
 
-        undo.disabled = true;
+        this.undo.disabled = true;
       }
     });
-    
+
     document.getElementById('show_score').addEventListener('change', () => {
       this.showScore();
     });
@@ -288,7 +288,7 @@ class Reversi {
     for (let i = 0; i < dirs.length; i++) {
       let targetRow = row + dirs[i].y;
       let targetCol = col + dirs[i].x;
-      
+
       // 隣の石が相手の色でない場合は、その回のループを終了
       if (targetRow < 0 || targetRow >= 8) {
         continue;
@@ -313,7 +313,7 @@ class Reversi {
           break;
         }
       }
-      
+
       // 相手の石の先でターゲットが盤の外か、まだ空白のマスだったら終了
       if (targetRow < 0 || targetRow >= 8) {
         continue;
